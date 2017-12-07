@@ -31,7 +31,7 @@ void recordExit(unsigned long index) {
 }
 
 void setCopyCount(unsigned long count) {
-	copyCount = count;
+    copyCount = count;
     memset(data, 0, sizeof(LoopExecTime)*ARRAY_SIZE);
 }
 
@@ -39,13 +39,15 @@ void printFinally(unsigned long programID) {
     FILE *file = fopen("loop_exec_time.txt", "a"); // for binary it should be ab.
     for (int i=0; i<ARRAY_SIZE; i++) {
         if (data[i].entryTime == 0) continue; // empty item
+        //Hashes are guaranteed to differ after the thousands place
+        //Multiplying by 10000 before adding means that adding an index will not cause collision
         
-        unsigned long id = programID*100 + i; // hash + index
+        unsigned long id = programID*10000 + i; // hash + index
         unsigned long duration = data[i].exitTime - data[i].entryTime;
         // fwrite(&id,sizeof(unsigned long),1,file);
         // fwrite(&copyCount,sizeof(unsigned long),1,file);
         // fwrite(&duration,sizeof(double),1,file);
-        fprintf(file, "%ld, %ld, %ld\n", id, copyCount, duration);
+        fprintf(file, "%lu, %lu, %lu\n", id, copyCount, duration);
     }
     fclose(file);
 }

@@ -124,13 +124,15 @@ bool MyUnroll::runOnLoop(Loop *L, LPPassManager &LPM) {
     
 
     // -------------- Do something!!
-	
-    writeFeatures(L, moduleHash*100 + loopIndex);
+    //Hashes are guaranteed to differ after the thousands place
+    //Multiplying by 10000 before adding means that adding an index will not cause collision
+    
+    writeFeatures(L, moduleHash*10000 + loopIndex);
     
     runOnEntryBlock(preheader, loopIndex);
     runOnExitBlock(exitingBlock, loopIndex);
-	
-	if (MyUnrollCount > 1) // if unroll factor is 2 or more
+    
+    if (MyUnrollCount > 1) // if unroll factor is 2 or more
         return unrolling(L, LPM); // then do the unrolling
     else
         return true;
@@ -218,7 +220,7 @@ void MyUnroll::setHookFunctions(Module *m) {
     // compute hash for string
     moduleHash = hash(loop_id_cstr);
     delete [] loop_id_cstr;
-	
+    
     llvm::Value* argHash []= {llvm::ConstantInt::get(Ctx , llvm::APInt( 64, moduleHash))};
     Instruction *printInst = CallInst::Create(hookFuncPrint, argHash, "");
     
@@ -304,7 +306,6 @@ void writeFeatures (Loop *L, unsigned long loopID){
                 (i)->print(rso);
                 std::size_t found = str.find("arrayidx");
                 if (found!=std::string::npos){
-                    //(i)->dump();
                     num_array_accesses+=1;
                 }
             }
@@ -314,37 +315,9 @@ void writeFeatures (Loop *L, unsigned long loopID){
     unsigned func_blocks_count = (*ii)->getParent()->getBasicBlockList().size();
     unsigned loop_blocks_count = L->getNumBlocks();
     unsigned loop_depth = L->getLoopDepth();
-    /*
-    //output features to a features file
-    string file_name = "loop_features.txt";
-    const char* f_name = file_name.c_str();
-    std::ofstream fout(f_name, std::ofstream::app );
-    
-    ofstream fout(file_name, std::ofstream::app | std::ofstream::binary);
-    fout.write((char*) &loopID, sizeof(unsigned long));
-    fout.write((char*) &num_instructions, sizeof(unsigned));
-    fout.write((char*) &num_arithmetic_ops, sizeof(unsigned));
-    fout.write((char*) &num_array_accesses, sizeof(unsigned));
-    fout.write((char*) &num_conditions, sizeof(unsigned));
-    fout.write((char*) &copyCount, sizeof(unsigned));
-    
-    fout << "Loop_ID: " << loopID;
-    fout << "\t Instruction count: " << num_instructions;
-    fout << "\t Arithmetic ops count: " << num_arithmetic_ops;
-    fout << "\t Array access count: " << num_array_accesses;
-    fout << "\t Conditional Instruction count: " << num_conditions;
-    //fout << ", Loop Iteration count: " << trip_count;
-    fout << "\t Unroll factor: " << copyCount;
-    fout << "Loop_ID: " << loopID << ", Inst_count: " << num_instructions<< ", Arith_ops_count: "
-            << num_arithmetic_ops << ", Arr_access_count: " << num_array_accesses << ", Cond_inst_count: "
-            << num_conditions  << ", Int_ops_count: " << num_int_ops << ", Float_ops_count: " << num_float_ops <<
-            ", Loads_count: " << num_loads << ", Stores_count: " << num_stores<< ", BB_in_Loop: " << loop_blocks_count << 
-            ", BB_in_Func: " << func_blocks_count << ", Loop_depth: " << loop_depth << "\n";
-    fout.close();*/
-	
-	FILE *file = fopen("loop_features.txt", "a"); // for binary it should be ab.
+    FILE *file = fopen("loop_features.txt", "a"); // for binary it should be ab.
         fprintf(file, "%lu, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n", loopID, num_instructions, num_arithmetic_ops, num_array_accesses,
-		num_conditions, num_int_ops, num_float_ops, num_loads, num_stores, loop_blocks_count, func_blocks_count, loop_depth);
+        num_conditions, num_int_ops, num_float_ops, num_loads, num_stores, loop_blocks_count, func_blocks_count, loop_depth);
     fclose(file);
 }
 
@@ -369,5 +342,5 @@ unsigned long hash(char *str)
     int c;
     while (c = *str++)
       hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    return hash;
+    return hash%8971;;
 }
