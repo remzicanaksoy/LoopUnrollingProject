@@ -1,12 +1,14 @@
 #!/bin/bash
 #output file is in format $run_count$file_prefix$loop_depth$unroll_factor
 #for example a file 1loop_features35.txt means run 1, loop_depth3, unroll factor 5 loop features file. Same for loop_exec
-LFP="loop_features_file"; #prefix for feature file
-EFC="loop_exec_count"; #prefix for execution_time_file
-for run_count in 1; do #iterate over 5 runs, we will use average of these
+LFP="loopFeaturesFile"; #prefix for feature file
+EFC="loopExecCount"; #prefix for execution_time_file
+rm ../run/*
+for run_count in 1 2 3 4 5; do #iterate over 5 runs, we will use average of these
   for depth in 1 2 3 4 5; do #go through loops in depth 1 through 5
      for factor in  1 2 3 4 5 8 10 16 ; do #go through these unroll factors
-       for i in *.c; do #go through all .c files in folder
+        rm -r *.txt;
+        for i in *.c; do #go through all .c files in folder
          bci=${i%??};
          link_bc="${bci}.bc";
          link2_bc="${bci}2.bc";
@@ -18,13 +20,13 @@ for run_count in 1; do #iterate over 5 runs, we will use average of these
          rm $link_bc;
          rm $link2_bc;
        done
-       ec="${run_count}${EFC}${depth}${factor}.txt"; #exec_file specific to this run
-       ff="${run_count}${LFP}${depth}${factor}.txt"; #feature_file specific to this run
+       ec="${run_count}_${EFC}_${depth}_${factor}.txt"; #exec_file specific to this run
+       ff="${run_count}_${LFP}_${depth}_${factor}.txt"; #feature_file specific to this run
        mv loop_features.txt $ff; #autogen of loop_features.txt is renamed
        mv $ff ../runs/.; #moved out of benchmark to upper level folder
        mv loop_exec_time.txt $ec; #same as feature file
        mv $ec ../runs/;
-       rm -r *.txt; 
+       rm -r *.txt;
        echo "$ff";  #health check 
      done
   done
