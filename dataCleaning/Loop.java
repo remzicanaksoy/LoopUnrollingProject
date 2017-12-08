@@ -48,7 +48,7 @@ public class Loop {
             int factor = (Integer) pair.getKey();
             HashSet<Double> runTimes = (HashSet<Double>) pair.getValue();
 
-            double average = calculateAverageForFactor(runTimes);
+            double average = calculateAverageForRunTimes(runTimes);
             if(average < minAverage) {
                 minAverage = average;
                 bestFactor = factor;
@@ -59,7 +59,12 @@ public class Loop {
         bestRunTime = minAverage;
     }
 
-    private double calculateAverageForFactor(HashSet<Double> runTimes) {
+    public double calculateAverageForFactor(int factor) {
+        HashSet<Double> runTimes = factorToRunTimes.get(factor);
+        return calculateAverageForRunTimes(runTimes);
+    }
+
+    public double calculateAverageForRunTimes(HashSet<Double> runTimes) {
         int count = 0;
         double sum = 0;
         if( runTimes.size() <= 0) {
@@ -93,7 +98,7 @@ public class Loop {
             int factor = (Integer) pair.getKey();
             HashSet<Double> runTimes = (HashSet<Double>) pair.getValue();
 
-            double average = calculateAverageForFactor(runTimes);
+            double average = calculateAverageForRunTimes(runTimes);
             String line = loopId + "," + features + "," + factor + "," + average;
             s = s + line + "\n";
         }
