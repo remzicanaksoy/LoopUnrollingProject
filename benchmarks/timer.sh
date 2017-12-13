@@ -14,7 +14,7 @@ for run_count in 1 2 3 4 5; do #iterate over 5 runs, we will use average of thes
          link2_bc="${bci}2.bc";
          clang -emit-llvm -o $bci -c $i;
          llvm-link p.bc $bci -S -o=$link_bc;
-         opt -load ../Release+Asserts/lib/mypass.so -loop-simplify -loop-rotate -mem2reg -myunroll -my-depth=$depth -my-count=$factor $link_bc -f -o $link2_bc;
+         opt -load ../mypass/Release+Asserts/lib/mypass.so -loop-simplify -loop-rotate -mem2reg -myunroll -my-depth=$depth -my-count=$factor $link_bc -f -o $link2_bc;
          lli $link2_bc;
          rm $bci
          rm $link_bc;
