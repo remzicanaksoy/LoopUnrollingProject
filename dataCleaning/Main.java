@@ -45,10 +45,160 @@ public class Main {
 
         printLoopsToNewFile(idToLoop);
         printMultipleLinesPerLoopToNewFile(idToLoop);
+
+        HashMap<String, Integer> perfectDecisions = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/knn.txt", 18, idToLoop);
+        HashMap<String, Double> bestExecutionTimes = calculateTimesForGivenDecisions(perfectDecisions, idToLoop);
+
+        HashMap<String, Integer> decisionsOfKNN = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/knn.txt", -1, idToLoop);
+        HashMap<String, Double> executionTimesForKNN = calculateTimesForGivenDecisions(decisionsOfKNN, idToLoop);
+        HashMap<String, Integer> decisionsOfDecisionTree = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/DecisionTree.txt", -1, idToLoop);
+        HashMap<String, Double> executionTimesForDecisionTree = calculateTimesForGivenDecisions(decisionsOfDecisionTree, idToLoop);
+        HashMap<String, Integer> decisionsOfMLPClassifier = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/MLPClassifier.txt", -1, idToLoop);
+        HashMap<String, Double> executionTimesForMLP = calculateTimesForGivenDecisions(decisionsOfMLPClassifier, idToLoop);
+        HashMap<String, Integer> decisionsOfRandomForest = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/Random-forest.txt", -1, idToLoop);
+        HashMap<String, Double> executionTimesForRandomForest = calculateTimesForGivenDecisions(decisionsOfRandomForest, idToLoop);
+        HashMap<String, Integer> decisionsOfLLVM = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/Random-forest.txt", 8, idToLoop);
+        HashMap<String, Double> executionTimesForLLVM = calculateTimesForGivenDecisions(decisionsOfLLVM, idToLoop);
+        HashMap<String, Integer> randomDecisons = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/Random-forest.txt", 17, idToLoop);
+        HashMap<String, Double> executionTimesForRandomDecisons = calculateTimesForGivenDecisions(randomDecisons, idToLoop);
+        HashMap<String, Integer> decisionsOfAsIs = constructTheLoopListWithDecisons("/Users/remzi/Desktop/results/Random-forest.txt", 1, idToLoop);
+        HashMap<String, Double> executionTimesForAsIs = calculateTimesForGivenDecisions(decisionsOfAsIs, idToLoop);
+
+        normalizeTheExecutionTimes(bestExecutionTimes, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForKNN, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForDecisionTree, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForMLP, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForRandomForest, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForLLVM, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForRandomDecisons, executionTimesForAsIs);
+        normalizeTheExecutionTimes(executionTimesForAsIs, executionTimesForAsIs);
+
+        printNormalizedTimesAndTotalTime(bestExecutionTimes, "/Users/remzi/Desktop/results/BestExecutionNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForKNN, "/Users/remzi/Desktop/results/KNNNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForDecisionTree, "/Users/remzi/Desktop/results/DecisionTreeNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForMLP, "/Users/remzi/Desktop/results/MLPNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForRandomForest, "/Users/remzi/Desktop/results/RandomForestNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForLLVM, "/Users/remzi/Desktop/results/LLVMNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForRandomDecisons, "/Users/remzi/Desktop/results/RandomNormalizedTime");
+        printNormalizedTimesAndTotalTime(executionTimesForAsIs, "/Users/remzi/Desktop/results/ASISNormalizedTime");
+
+        checkBetterCountCompareToOtherList(executionTimesForRandomForest, executionTimesForAsIs);
         //System.out.println("We have " + idToLoop.size() + " loops");
         //System.out.println("There is no measurement for " + idsWithoutMeasurement.size() + " loops");
 
 
+    }
+
+    public static void checkBetterCountCompareToOtherList(HashMap<String, Double> listToNormalize, HashMap<String, Double> baseList) {
+        Iterator it = listToNormalize.entrySet().iterator();
+        int count = 0;
+
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            String id = (String) pair.getKey();
+            double normalExecutionTime = (double) pair.getValue();
+            double baseExecutionTime = baseList.get(id);
+            if(normalExecutionTime <= baseExecutionTime) {
+                count++;
+            }
+        }
+
+        System.out.println("better count: "+ count);
+    }
+
+    public static void printNormalizedTimesAndTotalTime(HashMap<String, Double> list, String outputFile) {
+        Iterator it = list.entrySet().iterator();
+        double sum = 0;
+        PrintWriter writer = null;
+
+        try {
+            writer = new PrintWriter(outputFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            String id = (String) pair.getKey();
+            double executionTime = (double) pair.getValue();
+            sum += executionTime;
+        }
+
+        writer.println("Total normalized execution time = " + sum);
+        System.out.println("total normalized execution time = " + sum + " for " + outputFile.substring(outputFile.lastIndexOf("/") + 1));
+        it = list.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            String id = (String) pair.getKey();
+            double executionTime = (double) pair.getValue();
+            writer.println(id + "," + executionTime);
+
+        }
+
+        writer.close();
+
+    }
+
+    public static void normalizeTheExecutionTimes(HashMap<String, Double> listToNormalize, HashMap<String, Double> baseList) {
+        Iterator it = listToNormalize.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            String id = (String) pair.getKey();
+            double normalExecutionTime = (double) pair.getValue();
+            double baseExecutionTime = baseList.get(id);
+            listToNormalize.put(id, normalExecutionTime/baseExecutionTime);
+        }
+    }
+
+    public static HashMap<String, Double> calculateTimesForGivenDecisions(HashMap<String, Integer> decisions, HashMap<String, Loop> idToLoop) {
+        HashMap<String, Double> executionTimesForList = new HashMap<>();
+        Iterator it = decisions.entrySet().iterator();
+
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            String id = (String) pair.getKey();
+            int factorDecision = (int) pair.getValue();
+            Loop loop = idToLoop.get(id);
+            double executionTime = loop.calculateAverageForFactor(factorDecision);
+            executionTimesForList.put(id, executionTime);
+        }
+
+        return executionTimesForList;
+    }
+
+    public static HashMap<String, Integer> constructTheLoopListWithDecisons(String filename, int constantFactor, HashMap<String, Loop> idToLoop) {
+        HashMap<String, Integer> loopList = new HashMap<>();
+        int[] possibleFactors = {1,2,3,4,5,8,10,16};
+        Random random = new Random();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                String loopId = values[0];
+                int factor = Integer.parseInt(values[2]);
+                if(constantFactor >= 0) {
+                    if(constantFactor <= 16) {
+                        factor = constantFactor;
+                    }
+                    else if(constantFactor == 17)
+                    {
+                        int index = random.nextInt(possibleFactors.length);
+                        factor = possibleFactors[index];
+                    }
+                    else if(constantFactor == 18)
+                    {
+                        factor = idToLoop.get(loopId).bestUnrollFactor;
+                    }
+                }
+
+                loopList.put(loopId, factor);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return loopList;
     }
 
     private static void printMultipleLinesPerLoopToNewFile(HashMap<String, Loop> idToLoop) {
