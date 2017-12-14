@@ -1,6 +1,7 @@
 #!/bin/bash
 #output file is in format $run_count$file_prefix$loop_depth$unroll_factor
 #for example a file 1loop_features35.txt means run 1, loop_depth3, unroll factor 5 loop features file. Same for loop_exec
+clang -emit-llvm -o p.bc -c ../mypass/measure.c
 LFP="loopFeaturesFile"; #prefix for feature file
 EFC="loopExecCount"; #prefix for execution_time_file
 rm ../run/*
